@@ -10,7 +10,8 @@ inline_serv_b_kybrd=None
 owner_id=None
 in_chat_with_person=False
 usr_msg=None
-#сообщения от бота не прехватываются (пробывал так же другие методы-декораторы хххх_handler())
+#сообщения от бота не прехватываются (пробывал так же другие методы-декораторы хххх_handler()) - из-за этого бот принимает сообщения от клиентского бота
+#но не отпралвяет кнопки (строка 24 - if  msg.from_user.id==owner_id: #msg.from_user.id==owner_id:)
 @service_bot_dispatcher.message_handler()
 async def handle_usr_msg(msg:types.message):
     global inline_serv_b_kybrd
