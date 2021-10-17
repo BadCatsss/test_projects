@@ -21,8 +21,8 @@ client_bot_token=None
 service_bot_token=None
 client_bot_name='test_client_bot_IC_bot'
 service_bot_name='test_service_bot_IC_bot'
-client_bot_id=1959268476
-service_bot_id=2076740220
+client_bot_id=None
+service_bot_id=None
 
 service_bot=None
 client_bot = None
@@ -59,6 +59,9 @@ in_chat_with_owner=False
 event_create_in_progress=False
 event_create_progress_step=0
 fsm_states_dist=dict()
+
+media_types=[".jpg",".jpeg",".bmp",".gif"]
+default_event_img="https://telegram.org/img/t_logo.png"
 
 
 event_pipline={

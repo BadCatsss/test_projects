@@ -2,11 +2,12 @@ import sys
 import os
 workpath=sys.path.append(os.getcwd())
 from share.catalog_event import Catalog_event
+#ОСНОВНЫЕ ПЕРЕМЕННЫЕ В ЭТОМ МОДУЛЕ
 from share.imports  import *
 #import FSM_register
 #import FSM_handlers
 #for_test
-#my_id=############
+my_id=None
 #
 def init_settings(rply_keyboard_conf,chat_reply_button_config_file,inln_keyboard_conf):
     global client_bot
@@ -28,9 +29,11 @@ def init_settings(rply_keyboard_conf,chat_reply_button_config_file,inln_keyboard
     global inline_buttons_cnfg_list_cancel
     global client_bot_token
     global service_bot_token
+    global client_bot_id
+    global service_bot_id
     catalog_pos=0
     
-   
+   #Создание основных клавиатур - читаем кофниги
     IO_base.read_conf_file(rply_keyboard_conf,default_conf.default_reply_btn_conf)
     reply_buttons_cnfg_list=IO_base.file_read_res
     IO_base.read_conf_file(chat_reply_button_config_file,default_conf.default_chat_btn_conf)
@@ -45,12 +48,17 @@ def init_settings(rply_keyboard_conf,chat_reply_button_config_file,inln_keyboard
     inline_buttons_cnfg_list_cancel=IO_base.file_read_res
    
     
+    #for_test
+    #my_id=IO_base.read_tken_file("test_id.txt")
     # #for test
     # event_disp.add_event_to_list(catalog_event.Catalog_event('https://telegram.org/img/t_logo.png','test_title','test_title','test_desc','1111','12.12.21'))
     # event_disp.add_event_to_list(catalog_event.Catalog_event('https://telegram.org/img/t_logo.png','test_title','test_title','test_desc',my_id,'12.12.21'))
-    # event_disp.add_event_to_list(catalog_event.Catalog_event('https://telegram.org/img/t_logo.png','test_title','test_title','test_desc',my_id,'12.12.21'))
+    #event_disp.add_event_to_list(catalog_event.Catalog_event('h//telegram.org/img/t_logo.d','test_title','test_title','test_desc',my_id,'12.12.21'))
     # #
+
+    #Диспетчер событий каталога
     catalog_events_list=event_disp.get_events()
+     #Создание основных клавиатур - создаем основные клавиатуры
     replay_kybrd=construct_keyboard(getButtons(reply_buttons_cnfg_list,True),True)
     chat_replay_kybrd=construct_keyboard(getButtons(chat_reply_buttons_cnfg_list,True),True)
     inline_kybrd=construct_keyboard(getButtons(inline_buttons_cnfg_list,False),False)
@@ -63,9 +71,12 @@ def init_settings(rply_keyboard_conf,chat_reply_button_config_file,inln_keyboard
     # FSM_handlers.FSM_states.start_chat_state:FSM_handlers.see_event_handler,
     # FSM_handlers.FSM_states.wait_chat_msg_state:FSM_handlers.wait_chat_msg_handler,
     # FSM_handlers.FSM_states.start_chat_state:FSM_handlers.start_chat_handler}
+
+    #Настрйока ботов
     client_bot_token=IO_base.read_tken_file(client_bot_token_file_path)
     service_bot_token=IO_base.read_tken_file(service_bot_token_file_path)
-
+    client_bot_id=client_bot_token[:client_bot_token.find(":")]
+    service_bot_id=service_bot_token[:service_bot_token.find(":")]
     service_bot=Bot(service_bot_token)
     client_bot = Bot(client_bot_token)
     service_bot_dispatcher=Dispatcher(service_bot,storage=MemoryStorage())
@@ -81,6 +92,13 @@ async  def send_catalog(catalog,msg):
     for e in catalog:
         catalog_pos=catalog_pos+1
         snd_msg=e.evnet_title+'\n'+e.event_desc
+        is_correct_media_type=False
+        for t in media_types:
+            if e.media_path.endswith(t):
+                is_correct_media_type=True
+                break
+        if not ((e.media_path.startswith("https://") or e.media_path.startswith("http://")) and is_correct_media_type):
+            e.media_path=default_event_img
         await client_bot.send_photo(msg.from_user.id,photo=e.media_path,caption=snd_msg)
         if e.event_owner_id==msg.from_user.id:
                     await msg.answer(text='Действия для события - '+str(catalog_pos-1)+':', reply_markup=inline_kybrd)
@@ -99,6 +117,8 @@ async def handle_usr_msg(msg:types.Message):
         await client_bot.send_message(msg.from_user.id,'Добро пожаловать,'+msg.from_user.full_name,reply_markup=replay_kybrd)
     if msg.text==default_conf.catalog_text:
         catalog_pos=0
+        if len(catalog_events_list)==0:
+            await client_bot.send_message(msg.from_user.id,'Каталог пуст',reply_markup=replay_kybrd)
         if len(catalog_events_list)>0 and len(catalog_events_list)<=2:
             await  send_catalog(catalog_events_list,msg)
         else:
@@ -116,7 +136,8 @@ async def handle_usr_msg(msg:types.Message):
         event_d='\nНазвание:\n'+ev_disp.Catalog_event_dispatcher.choosen_event.evnet_title+'\n'+'Описание:\n'+ev_disp.Catalog_event_dispatcher.choosen_event.event_desc
         await msg.answer(text='Вы просматриваете событые'+event_d, reply_markup=chat_replay_kybrd)
     elif in_chat_with_owner:    
-       await share.send_to_another_bot.send_to_bot(ev_disp.Catalog_event_dispatcher.choosen_event.evnet_title,msg.from_user.full_name,msg.text,service_bot,ev_disp.Catalog_event_dispatcher.choosen_event.event_owner_id,inline_kybrd_for_owner) 
+       await share.send_to_another_bot.send_to_bot(ev_disp.Catalog_event_dispatcher.choosen_event.evnet_title,msg.from_user.full_name,msg.text,service_bot,ev_disp.Catalog_event_dispatcher.choosen_event.event_owner_id,inline_kybrd_for_owner)
+       # сам себе FSM ) 
     elif msg.text==default_conf.add_event_text or event_create_in_progress:
         if msg.text==default_conf.add_event_text:
             event_create_progress_step=0
@@ -124,27 +145,32 @@ async def handle_usr_msg(msg:types.Message):
             ev_pipline_text=""
             for e in event_pipline:
                 ev_pipline_text+=str(e+1)+"."+event_pipline[e]+"\n"
-            ev_pipline_text+="Что бы вернуться на один из предыдущих шагов - напишите номер шага (1,2..)"
+            ev_pipline_text+="Что бы вернуться на один из предыдущих шагов - напишите номер шага (0,1,2..) - меньше текущего номера"
             await msg.answer(text=ev_pipline_text,reply_markup=inline_kybrd_cancel)
+            await msg.answer(text=str(event_create_progress_step)+"."+event_pipline[event_create_progress_step])
         elif event_create_in_progress:
-            if len(msg.text)==1 and str.isdigit(msg.text) and  int(msg.text) in event_pipline.keys() and int(msg.text)<event_create_progress_step: #Вкрнуться к одному из предыдущих шагов
-                event_create_progress_step=int(msg.text)
-                await msg.answer(text="Вы вернулись к шагу - "+msg.text)
+            if len(msg.text)==1 and str.isdigit(msg.text) and  int(msg.text) in event_pipline.keys(): #Вкрнуться к одному из предыдущих шагов
+                if int(msg.text)<event_create_progress_step:
+                    event_create_progress_step=int(msg.text)
+                    await msg.answer(text="Вы вернулись к шагу - "+msg.text)
+                else:
+                    await msg.answer(text="Вы можете вернуться только к пройденым шагам. Введите число меньше текущего шага.")
             elif len(msg.text)>2: # продолжить создавать событие
+                event_create_progress_step=event_create_progress_step+1
                 if event_create_progress_step<len(event_pipline):
                     event_pipline_answ[event_create_progress_step]=msg.text
-                    if event_create_progress_step<len(event_pipline)-1:
-                        await msg.answer(text=event_pipline[event_create_progress_step])
-                    event_create_progress_step=event_create_progress_step+1
+                    await msg.answer(text=str(event_create_progress_step)+"."+event_pipline[event_create_progress_step])                          
                 else:
                     created_event=Catalog_event(event_pipline_answ[3],event_pipline_answ[0],event_pipline_answ[1],event_pipline_answ[2],msg.from_user.id,event_pipline_answ[4])
                     accepted_text=''
                     event_disp.add_event_to_list(created_event)
                     event_create_progress_step=0
                     event_create_in_progress=False
-                    accepted_text+="Имя слбытия:\n"+created_event.evnet_title+'\nОписание события:\n'+created_event.event_desc
+                    accepted_text+="Имя слбытия:\n"+created_event.evnet_title+'\nОписание события:\n'+created_event.event_desc+"\n"
                     accepted_text+="Вы создали событие👆👆👆\nДля того, чтобы получать уведомления о сообщениях перейдите в  @"+service_bot_name+" и напишите /start\n"
-                    await msg.answer(text=accepted_text)
+                    await msg.answer(text=accepted_text)                
+            else:
+                await msg.answer(text="Длина сообщения должна быть больше 2х символов")
             
 @client_bot_dispatcher.callback_query_handler()
 async def inline_keyboard_callback(callback_q:types.CallbackQuery):
