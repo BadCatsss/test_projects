@@ -18,15 +18,14 @@ import share.send_to_another_bot
 client_bot_token_file_path="client_token.txt"
 service_bot_token_file_path="service_token.txt"
 client_bot_token=None
-service_bot_token=None
+service_bot_token=IO_base.read_tken_file(service_bot_token_file_path)
 client_bot_name='test_client_bot_IC_bot'
 service_bot_name='test_service_bot_IC_bot'
 client_bot_id=None
-service_bot_id=None
-
-service_bot=None
+service_bot_id=service_bot_token[:service_bot_token.find(":")]
+service_bot=Bot(service_bot_token)
 client_bot = None
-service_bot_dispatcher=None
+service_bot_dispatcher=Dispatcher(service_bot,storage=MemoryStorage())
 keyboard_for_service_bot=None
 event_disp=ev_disp.Catalog_event_dispatcher.get_dispatcher_instance()
 ##client##

@@ -59,7 +59,7 @@ def init_settings(rply_keyboard_conf,chat_reply_button_config_file,inln_keyboard
     #Диспетчер событий каталога
     catalog_events_list=event_disp.get_events()
      #Создание основных клавиатур - создаем основные клавиатуры
-    replay_kybrd=construct_keyboard(getButtons(reply_buttons_cnfg_list,True),True)
+    replay_kybrd=construct_keyboard(getButtons(reply_buttons_cnfg_list,True),True,True)
     chat_replay_kybrd=construct_keyboard(getButtons(chat_reply_buttons_cnfg_list,True),True)
     inline_kybrd=construct_keyboard(getButtons(inline_buttons_cnfg_list,False),False)
     inline_kybrd_for_owner=construct_keyboard(getButtons(inline_buttons_cnfg_list_for_owner,False),False)
@@ -74,12 +74,8 @@ def init_settings(rply_keyboard_conf,chat_reply_button_config_file,inln_keyboard
 
     #Настрйока ботов
     client_bot_token=IO_base.read_tken_file(client_bot_token_file_path)
-    service_bot_token=IO_base.read_tken_file(service_bot_token_file_path)
     client_bot_id=client_bot_token[:client_bot_token.find(":")]
-    service_bot_id=service_bot_token[:service_bot_token.find(":")]
-    service_bot=Bot(service_bot_token)
     client_bot = Bot(client_bot_token)
-    service_bot_dispatcher=Dispatcher(service_bot,storage=MemoryStorage())
     client_bot_dispatcher=Dispatcher(client_bot,storage=MemoryStorage())
 
 init_settings(rply_keyboard_conf=reply_button_config_file,chat_reply_button_config_file=chat_reply_button_config_file,
@@ -116,6 +112,8 @@ async def handle_usr_msg(msg:types.Message):
     if msg.text=='/start':
         await client_bot.send_message(msg.from_user.id,'Добро пожаловать,'+msg.from_user.full_name,reply_markup=replay_kybrd)
     if msg.text==default_conf.catalog_text:
+        event_create_progress_step=0
+        event_create_in_progress=False
         catalog_pos=0
         if len(catalog_events_list)==0:
             await client_bot.send_message(msg.from_user.id,'Каталог пуст',reply_markup=replay_kybrd)
