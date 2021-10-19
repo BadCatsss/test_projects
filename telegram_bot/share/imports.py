@@ -85,7 +85,7 @@ service_b_inline_buttons_cnfg_list=None
 
 def construct_keyboard(buttons:list,is_reply_kybrd:bool,needResizeKeyboard=True):
     if is_reply_kybrd:
-        markup=ReplyKeyboardMarkup(needResizeKeyboard)
+        markup=ReplyKeyboardMarkup(resize_keyboard=needResizeKeyboard)
     else:
         markup=InlineKeyboardMarkup()
     for btn in buttons:

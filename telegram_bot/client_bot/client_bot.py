@@ -59,7 +59,7 @@ def init_settings(rply_keyboard_conf,chat_reply_button_config_file,inln_keyboard
     #Диспетчер событий каталога
     catalog_events_list=event_disp.get_events()
      #Создание основных клавиатур - создаем основные клавиатуры
-    replay_kybrd=construct_keyboard(getButtons(reply_buttons_cnfg_list,True),True,True)
+    replay_kybrd=construct_keyboard(getButtons(reply_buttons_cnfg_list,True),True)
     chat_replay_kybrd=construct_keyboard(getButtons(chat_reply_buttons_cnfg_list,True),True)
     inline_kybrd=construct_keyboard(getButtons(inline_buttons_cnfg_list,False),False)
     inline_kybrd_for_owner=construct_keyboard(getButtons(inline_buttons_cnfg_list_for_owner,False),False)
