@@ -36,7 +36,7 @@ namespace C_job_test_task
             }
             else
             {
-                MessageBox.Show("Please select one of the databases or create new one", "DB Select error", MessageBoxButtons.OK);
+                MessageBox.Show("Please select one of the databases or create new one", "DB select error", MessageBoxButtons.OK);
             }
             
            
@@ -58,11 +58,20 @@ namespace C_job_test_task
         private void Create_new_DB_btn_Click(object sender, EventArgs e)
         {
             string new_db_name = this.new_db_name_txt_box.Text;
-            new_db_name = validate_db_name(new_db_name)+".db";
-            Database_creator db_creator = new Database_creator(new_db_name);
-            new_db_name = Directory.GetCurrentDirectory() + "\\" + new_db_name;
-            SetDbListValues(new string[] { new_db_name });
-            this.selectedDB = new_db_name;
+            string validated_name = validate_db_name(new_db_name);
+            if (validated_name.Length>0)
+            {
+                new_db_name = validated_name + ".db";
+                Database_creator db_creator = new Database_creator(new_db_name);
+                new_db_name = Directory.GetCurrentDirectory() + "\\" + new_db_name;
+                SetDbListValues(new string[] { new_db_name });
+                this.selectedDB = new_db_name;
+            }
+            else
+            {
+                MessageBox.Show("Please input correct name for new DB", "DB create error", MessageBoxButtons.OK);
+            }
+            
             
 
         }
